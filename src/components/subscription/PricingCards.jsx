@@ -7,23 +7,34 @@ export default function PricingCards() {
   const { user } = useAuth()
   const { tier: currentTier } = useSubscription()
 
-  async function handleSubscribe(tierKey, mode = 'subscription') {
+  async function handleSubscribe(tierKey, billing = 'monthly') {
     if (!user) {
       window.location.hash = '#/login'
       return
     }
 
-    const t = TIERS[tierKey]
-    const priceId = mode === 'subscription'
-      ? (tierKey === 'basic' ? t.stripePriceId : t.stripePriceIdMonthly)
-      : t.stripePriceIdOneTime
+    try {
+      const t = TIERS[tierKey]
+      const priceId = billing === 'yearly'
+        ? t.stripePriceIdYearly
+        : (tierKey === 'basic' ? t.stripePriceId : t.stripePriceIdMonthly)
 
-    await createCheckoutSession({
-      priceId,
-      uid: user.uid,
-      email: user.email,
-      mode: mode === 'subscription' ? 'subscription' : 'payment',
-    })
+      if (!priceId || priceId.startsWith('price_basic') || priceId.startsWith('price_premium')) {
+        alert('Subscription is not configured yet. Please try again later.')
+        console.error('Missing Stripe price ID for tier:', tierKey, 'billing:', billing, 'priceId:', priceId)
+        return
+      }
+
+      await createCheckoutSession({
+        priceId,
+        uid: user.uid,
+        email: user.email,
+        mode: 'subscription',
+      })
+    } catch (err) {
+      console.error('Subscription error:', err)
+      alert('Something went wrong starting checkout. Please try again.')
+    }
   }
 
   return (
@@ -69,7 +80,7 @@ export default function PricingCards() {
         <div className="pricing-period">per month</div>
         <div className="pricing-or">OR</div>
         <div className="pricing-price" style={{ fontSize: '1.6rem' }}>$49.99</div>
-        <div className="pricing-period">one-time (lifetime access)</div>
+        <div className="pricing-period">per year (save 40%)</div>
         <ul className="pricing-features">
           {TIERS.premium.features.map((f, i) => (
             <li key={i} className={f.includes('Audio Recite') ? 'feature-highlight' : ''}>
@@ -82,12 +93,12 @@ export default function PricingCards() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button className="btn btn-primary" style={{ width: '100%' }}
-              onClick={() => handleSubscribe('premium', 'subscription')}>
+              onClick={() => handleSubscribe('premium', 'monthly')}>
               Subscribe Monthly
             </button>
             <button className="btn btn-secondary" style={{ width: '100%' }}
-              onClick={() => handleSubscribe('premium', 'payment')}>
-              Buy Lifetime &mdash; $49.99
+              onClick={() => handleSubscribe('premium', 'yearly')}>
+              Subscribe Yearly &mdash; $49.99/yr
             </button>
           </div>
         )}

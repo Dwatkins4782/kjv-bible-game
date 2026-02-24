@@ -1,7 +1,7 @@
 // Subscription tier definitions
 // Free: 20 scriptures, 3 lessons
 // Basic ($2.99/mo): 50 scriptures, ~50% lessons
-// Premium ($6.99/mo OR $49.99 one-time): Unlimited, all lessons, Audio Recite
+// Premium ($6.99/mo OR $49.99/yr): Unlimited, all lessons, Audio Recite
 
 export const TIERS = {
   free: {
@@ -22,7 +22,7 @@ export const TIERS = {
     name: 'Basic',
     priceMonthly: 299,
     priceDisplay: '$2.99/mo',
-    stripePriceId: import.meta.env?.VITE_STRIPE_BASIC_PRICE_ID || 'price_basic_monthly',
+    stripePriceId: import.meta.env?.VITE_STRIPE_BASIC_PRICE_ID || '',
     maxVerses: 50,
     maxLessons: 10,
     quizAccess: 'available',
@@ -38,10 +38,10 @@ export const TIERS = {
     name: 'Premium',
     priceMonthly: 699,
     priceDisplay: '$6.99/mo',
-    priceOneTime: 4999,
-    priceOneTimeDisplay: '$49.99 one-time',
-    stripePriceIdMonthly: import.meta.env?.VITE_STRIPE_PREMIUM_PRICE_ID || 'price_premium_monthly',
-    stripePriceIdOneTime: import.meta.env?.VITE_STRIPE_PREMIUM_ONETIME_ID || 'price_premium_onetime',
+    priceYearly: 4999,
+    priceYearlyDisplay: '$49.99/yr',
+    stripePriceIdMonthly: import.meta.env?.VITE_STRIPE_PREMIUM_PRICE_ID || '',
+    stripePriceIdYearly: import.meta.env?.VITE_STRIPE_PREMIUM_YEARLY_ID || '',
     maxVerses: Infinity,
     maxLessons: Infinity,
     quizAccess: 'full',
