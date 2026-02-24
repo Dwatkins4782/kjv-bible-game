@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "org.scripturevault.www.twa",
+        "sha256_cert_fingerprints": ["24:A3:33:DF:55:E1:D6:09:1D:3B:81:FA:B6:BC:BA:3D:A9:5E:F8:81:BF:C6:2B:08:BB:39:F3:63:1F:74:84:86"]
+      }
+    }]

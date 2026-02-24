@@ -3,3 +3,11 @@ dist
 .DS_Store
 *.local
 server/node_modules
+.vercel
+.env
+.env.local
+
+# Android signing keys (keep safe, never commit)
+signing.keystore
+signing-key-info.txt
+*.keystore
