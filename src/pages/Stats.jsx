@@ -1,8 +1,15 @@
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getAllVerses, getCategories, getVersesByCategory } from '../data/verses'
+import { useContentAccess } from '../hooks/useContentAccess'
+import { useSubscription } from '../hooks/useSubscription'
+import { lessonRegistry } from '../data/lessons/index'
+import { Link } from 'react-router-dom'
 
 export default function Stats() {
   const [stats, setStats] = useLocalStorage('kjv-stats', { quizzesTaken: 0, totalCorrect: 0, totalQuestions: 0, memorized: [] })
+  const [lessonProgress] = useLocalStorage('kjv-lesson-progress', {})
+  const { accessibleVerses } = useContentAccess()
+  const { tier } = useSubscription()
 
   const allVerses = getAllVerses()
   const categories = getCategories()
@@ -10,7 +17,13 @@ export default function Stats() {
   const accuracy = stats.totalQuestions > 0
     ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100)
     : 0
-  const progress = Math.round((memorizedCount / allVerses.length) * 100)
+  const progress = accessibleVerses.length > 0
+    ? Math.round((memorizedCount / accessibleVerses.length) * 100)
+    : 0
+
+  // Lesson stats
+  const lessonsStarted = Object.keys(lessonProgress).length
+  const lessonsCompleted = Object.values(lessonProgress).filter(p => p.completed).length
 
   function resetStats() {
     if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
@@ -28,8 +41,8 @@ export default function Stats() {
           <div className="stat-label">Verses Memorized</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{allVerses.length}</div>
-          <div className="stat-label">Total Verses</div>
+          <div className="stat-value">{accessibleVerses.length}</div>
+          <div className="stat-label">Available Verses</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{stats.quizzesTaken}</div>
@@ -42,11 +55,37 @@ export default function Stats() {
       </div>
 
       <div className="card">
-        <h3 className="text-gold mb-8">Overall Memorization</h3>
+        <h3 className="text-gold mb-8">Scripture Memorization</h3>
         <div className="progress-bar" style={{ height: '16px', marginBottom: '8px' }}>
           <div className="progress-fill" style={{ width: `${progress}%` }} />
         </div>
-        <p className="text-muted">{memorizedCount} of {allVerses.length} verses ({progress}%)</p>
+        <p className="text-muted">{memorizedCount} of {accessibleVerses.length} available verses ({progress}%)</p>
+        {tier === 'free' && (
+          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '8px' }}>
+            <Link to="/pricing" style={{ color: 'var(--gold)' }}>Upgrade</Link> to unlock more verses ({allVerses.length} total)
+          </p>
+        )}
+      </div>
+
+      {/* Lesson Progress */}
+      <div className="card">
+        <h3 className="text-gold mb-8">Bible Lessons</h3>
+        <div className="stats-grid" style={{ marginBottom: '12px' }}>
+          <div className="stat-card">
+            <div className="stat-value">{lessonsStarted}</div>
+            <div className="stat-label">Started</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{lessonsCompleted}</div>
+            <div className="stat-label">Completed</div>
+          </div>
+        </div>
+        <div className="progress-bar" style={{ height: '8px', marginBottom: '8px' }}>
+          <div className="progress-fill" style={{ width: `${lessonRegistry.length > 0 ? Math.round((lessonsCompleted / lessonRegistry.length) * 100) : 0}%` }} />
+        </div>
+        <p className="text-muted" style={{ fontSize: '0.85rem' }}>
+          {lessonsCompleted} of {lessonRegistry.length} lessons completed
+        </p>
       </div>
 
       <div className="card">
@@ -54,7 +93,7 @@ export default function Stats() {
         {categories.map(cat => {
           const catVerses = getVersesByCategory(cat)
           const catMemorized = catVerses.filter(v => stats.memorized.includes(v.ref)).length
-          const catPct = Math.round((catMemorized / catVerses.length) * 100)
+          const catPct = catVerses.length > 0 ? Math.round((catMemorized / catVerses.length) * 100) : 0
           return (
             <div key={cat} style={{ marginBottom: '16px' }}>
               <div className="flex-between mb-8">

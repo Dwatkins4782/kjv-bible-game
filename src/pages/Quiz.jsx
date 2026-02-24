@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { getCategories, getVersesByCategory, getAllVerses } from '../data/verses'
 import { generateQuiz } from '../utils/quiz'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useContentAccess } from '../hooks/useContentAccess'
 
 export default function Quiz() {
   const [stats, setStats] = useLocalStorage('kjv-stats', { quizzesTaken: 0, totalCorrect: 0, totalQuestions: 0, memorized: [] })
+  const { accessibleVerses } = useContentAccess()
   const [category, setCategory] = useState('all')
   const [difficulty, setDifficulty] = useState('medium')
   const [questionCount, setQuestionCount] = useState(10)
@@ -20,7 +22,9 @@ export default function Quiz() {
   const categories = getCategories()
 
   function startQuiz() {
-    const verses = category === 'all' ? getAllVerses() : getVersesByCategory(category)
+    // Filter to only accessible verses based on subscription tier
+    const allAccessible = accessibleVerses
+    const verses = category === 'all' ? allAccessible : getVersesByCategory(category).filter(v => allAccessible.some(a => a.ref === v.ref))
     const count = Math.min(questionCount, verses.length)
     const q = generateQuiz(verses, count, difficulty)
     setQuiz(q)
